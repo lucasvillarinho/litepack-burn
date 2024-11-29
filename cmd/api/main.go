@@ -19,7 +19,7 @@ func main() {
 		slog.Error("failed to create cache", slog.Any("error", err))
 		return
 	}
-	lcache.Destroy(ctx)
+	defer lcache.Destroy(ctx)
 
 	handler, err := handler.NewCacheHandler(ctx, lcache)
 	if err != nil {
