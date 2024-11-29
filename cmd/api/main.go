@@ -3,19 +3,37 @@ package main
 import (
 	"context"
 	"log/slog"
-	"net/http"
 
-	"github.com/lucasvillarinho/litepack-burn/cache"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/lucasvillarinho/litepack"
+
+	"github.com/lucasvillarinho/litepack-burn/handler"
 )
 
 func main() {
 	ctx := context.Background()
-	handler, err := cache.NewCacheHandler(ctx)
+
+	lcache, err := litepack.NewCache(ctx)
+	if err != nil {
+		slog.Error("failed to create cache", slog.Any("error", err))
+		return
+	}
+	lcache.Destroy(ctx)
+
+	handler, err := handler.NewCacheHandler(ctx, lcache)
 	if err != nil {
 		slog.Error("failed to create cache handler", slog.Any("error", err))
 		return
 	}
 
-	http.HandleFunc("/set", handler.Set)
-	http.ListenAndServe(":8080", nil)
+	e := echo.New()
+	e.Use(middleware.Recover())
+	e.Use(middleware.Logger())
+
+	e.POST("cache/set", handler.Set)
+
+	if err := e.Start(":8080"); err != nil {
+		slog.Error("failed to start server", slog.Any("error", err))
+	}
 }
