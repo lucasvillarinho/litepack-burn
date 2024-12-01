@@ -47,6 +47,7 @@ func NewCacheAttacker() CacheAttacker {
 func (ca *cacheAttacker) Attack() error {
 
 	fmt.Println()
+	headerLitePackBurn()
 
 	renderInfoMachine()
 
@@ -329,4 +330,30 @@ func renderInfoMachine() {
 	}
 
 	fmt.Println()
+}
+
+func headerLitePackBurn() {
+
+	titleStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FF0000"))
+
+	versionStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#32CD32")).
+		Bold(true)
+
+	itemStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#AAAAAA"))
+
+	version := "v0.0.1"
+	description := "A suite to stress test and benchmark LitePack's operations\nunder heavy load with reproducible scenarios."
+	line := "__________________________________________\n"
+
+	output := lipgloss.JoinVertical(lipgloss.Left,
+		titleStyle.Render("📦 🔥 LitePack Burn"),
+		itemStyle.Render(description),
+		versionStyle.Render(fmt.Sprintf("Version: %s", version)),
+		itemStyle.Render(line),
+	)
+
+	fmt.Println(output)
 }
