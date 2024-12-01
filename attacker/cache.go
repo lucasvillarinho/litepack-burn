@@ -48,23 +48,23 @@ func (ca *cacheAttacker) Attack() error {
 	}
 	fmt.Printf("✅ Generated %d fake data\n", len(data))
 
-	setMetrics, err := ca.AttackCacheSet(data)
-	if err != nil {
-		return fmt.Errorf("❌ Error running set benchmark: %v", err)
-	}
-	fmt.Println("✅ Set benchmark finished")
+	// setMetrics, err := ca.AttackCacheSet(data)
+	// if err != nil {
+	// 	return fmt.Errorf("❌ Error running set benchmark: %v", err)
+	// }
+	// fmt.Println("✅ Set benchmark finished")
 
-	upsertMetrics, err := ca.AttackCacheSet(data)
-	if err != nil {
-		return fmt.Errorf("❌ Error running upsert benchmark: %v", err)
-	}
-	fmt.Println("✅ Upsert benchmark finished")
+	// upsertMetrics, err := ca.AttackCacheSet(data)
+	// if err != nil {
+	// 	return fmt.Errorf("❌ Error running upsert benchmark: %v", err)
+	// }
+	// fmt.Println("✅ Upsert benchmark finished")
 
-	getMetrics, err := ca.AttackCacheGet(data)
-	if err != nil {
-		return fmt.Errorf("❌ Error running get benchmark: %v", err)
-	}
-	fmt.Println("✅ Get benchmark finished")
+	// getMetrics, err := ca.AttackCacheGet(data)
+	// if err != nil {
+	// 	return fmt.Errorf("❌ Error running get benchmark: %v", err)
+	// }
+	// fmt.Println("✅ Get benchmark finished")
 
 	deleteMetrics, err := ca.AttackCacheDelete(data)
 	if err != nil {
@@ -73,9 +73,9 @@ func (ca *cacheAttacker) Attack() error {
 
 	fmt.Println("🪖 Results:")
 	var rows [][]string
-	rows = append(rows, rowCacheMetrics("SET", setMetrics)...)
-	rows = append(rows, rowCacheMetrics("UPSERT", upsertMetrics)...)
-	rows = append(rows, rowCacheMetrics("GET", getMetrics)...)
+	// rows = append(rows, rowCacheMetrics("SET", setMetrics)...)
+	// rows = append(rows, rowCacheMetrics("UPSERT", upsertMetrics)...)
+	// rows = append(rows, rowCacheMetrics("GET", getMetrics)...)
 	rows = append(rows, rowCacheMetrics("DELETE", deleteMetrics)...)
 
 	renderCacheMetrics(rows)
@@ -156,7 +156,7 @@ func setupDeleteTarget(data map[string]string) []vegeta.Target {
 	targets := make([]vegeta.Target, 0, len(data))
 	for key := range data {
 		targets = append(targets, vegeta.Target{
-			Method: "GET",
+			Method: "DELETE",
 			URL:    fmt.Sprintf("http://localhost:8080/cache/delete/%s", key),
 		})
 	}
