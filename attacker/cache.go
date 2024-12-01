@@ -7,6 +7,10 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/go-faker/faker/v4"
+	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/disk"
+	"github.com/shirou/gopsutil/v4/host"
+	"github.com/shirou/gopsutil/v4/mem"
 	vegeta "github.com/tsenart/vegeta/lib"
 
 	"github.com/lucasvillarinho/litepack-burn/table"
@@ -42,44 +46,71 @@ func NewCacheAttacker() CacheAttacker {
 
 func (ca *cacheAttacker) Attack() error {
 
+	fmt.Println()
+
+	renderInfoMachine()
+
+	titleStyle := lipgloss.NewStyle().
+		Bold(true)
+	itemStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#AAAAAA")).
+		PaddingLeft(2)
+
+	fmt.Println(titleStyle.Render("🧪 Setup cache attacker.."))
 	data, err := GenerateCacheFakeData(1000)
 	if err != nil {
-		return fmt.Errorf("❌ Error generating fake data: %v", err)
+		return fmt.Errorf("❌ Error generating fake data: %v'", err)
 	}
-	fmt.Printf("✅ Generated %d fake data\n", len(data))
+	fmt.Println(itemStyle.Render(ListDone(" Generated fake data\n")))
 
-	// setMetrics, err := ca.AttackCacheSet(data)
-	// if err != nil {
-	// 	return fmt.Errorf("❌ Error running set benchmark: %v", err)
-	// }
-	// fmt.Println("✅ Set benchmark finished")
+	fmt.Println(titleStyle.Render("🔥 Running cache benchmarks..."))
 
-	// upsertMetrics, err := ca.AttackCacheSet(data)
-	// if err != nil {
-	// 	return fmt.Errorf("❌ Error running upsert benchmark: %v", err)
-	// }
-	// fmt.Println("✅ Upsert benchmark finished")
+	setMetrics, err := ca.AttackCacheSet(data)
+	if err != nil {
+		return fmt.Errorf("❌ Error running set benchmark: %v", err)
+	}
+	fmt.Println(itemStyle.Render(ListDone("Set benchmark finished")))
 
-	// getMetrics, err := ca.AttackCacheGet(data)
-	// if err != nil {
-	// 	return fmt.Errorf("❌ Error running get benchmark: %v", err)
-	// }
-	// fmt.Println("✅ Get benchmark finished")
+	upsertMetrics, err := ca.AttackCacheSet(data)
+	if err != nil {
+		return fmt.Errorf("❌ Error running upsert benchmark: %v", err)
+	}
+	fmt.Println(itemStyle.Render(ListDone("Upsert benchmark finished")))
+
+	getMetrics, err := ca.AttackCacheGet(data)
+	if err != nil {
+		return fmt.Errorf("❌ Error running get benchmark: %v", err)
+	}
+	fmt.Println(itemStyle.Render(ListDone("Get benchmark finished")))
 
 	deleteMetrics, err := ca.AttackCacheDelete(data)
 	if err != nil {
 		return fmt.Errorf("❌ Error running delete benchmark: %v", err)
 	}
+	fmt.Println(itemStyle.Render(ListDone("Delete benchmark finished\n")))
 
-	fmt.Println("🪖 Results:")
+	fmt.Println(titleStyle.Render("📊 Cache Metrics\n"))
 	var rows [][]string
-	// rows = append(rows, rowCacheMetrics("SET", setMetrics)...)
-	// rows = append(rows, rowCacheMetrics("UPSERT", upsertMetrics)...)
-	// rows = append(rows, rowCacheMetrics("GET", getMetrics)...)
+	rows = append(rows, rowCacheMetrics("SET", setMetrics)...)
+	rows = append(rows, rowCacheMetrics("UPSERT", upsertMetrics)...)
+	rows = append(rows, rowCacheMetrics("GET", getMetrics)...)
 	rows = append(rows, rowCacheMetrics("DELETE", deleteMetrics)...)
 
 	renderCacheMetrics(rows)
 	return nil
+}
+
+func ListDone(s string) string {
+	special := lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
+
+	checkMark := lipgloss.NewStyle().SetString("✓").
+		Foreground(special).
+		PaddingRight(1).
+		String()
+
+	return checkMark + lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: "#969B86", Dark: "#696969"}).
+		Render(s)
 }
 
 func (ca *cacheAttacker) AttackCacheSet(data map[string]string) (vegeta.Metrics, error) {
@@ -241,4 +272,61 @@ func GenerateCacheFakeData(size int) (map[string]string, error) {
 func escapeJSON(input string) string {
 	escaped, _ := json.Marshal(input)
 	return string(escaped[1 : len(escaped)-1])
+}
+
+func renderInfoMachine() {
+	titleStyle := lipgloss.NewStyle().
+		Bold(true)
+
+	itemStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#AAAAAA")).
+		PaddingLeft(2)
+
+	var items []string
+
+	// CPU Info
+	cpuInfo, _ := cpu.Info()
+	for _, info := range cpuInfo {
+		items = append(items, itemStyle.Render(fmt.Sprintf("CPU Model: %s", info.ModelName)))
+	}
+	percent, _ := cpu.Percent(0, false)
+	items = append(items, itemStyle.Render(fmt.Sprintf("CPU Usage: %.2f%%", percent[0])))
+
+	// Memory Info
+	vMem, _ := mem.VirtualMemory()
+	items = append(items,
+		itemStyle.Render(fmt.Sprintf("Total Memory: %.2f GB", float64(vMem.Total)/1e9)),
+		itemStyle.Render(fmt.Sprintf("Used Memory: %.2f GB", float64(vMem.Used)/1e9)),
+	)
+
+	// Disk Info
+	var totalDiskSpace uint64
+	parts, _ := disk.Partitions(false)
+	for _, part := range parts {
+		usage, _ := disk.Usage(part.Mountpoint)
+		totalDiskSpace += usage.Total
+	}
+	items = append(items, itemStyle.Render(fmt.Sprintf("Total Disk Space: %.2f GB", float64(totalDiskSpace)/1e9)))
+
+	usage, err := disk.Usage("/")
+	if err != nil {
+		items = append(items, itemStyle.Render(fmt.Sprintf("Disk (/): Total %.2f GB, Used %.2f GB", float64(usage.Total)/1e9, float64(usage.Used)/1e9)))
+	}
+
+	// Host Info
+	hostInfo, _ := host.Info()
+	items = append(items,
+		itemStyle.Render(fmt.Sprintf("Hostname: %s", hostInfo.Hostname)),
+		itemStyle.Render(fmt.Sprintf("OS: %s %s", hostInfo.Platform, hostInfo.PlatformVersion)),
+		itemStyle.Render(fmt.Sprintf("Uptime: %s", time.Duration(hostInfo.Uptime)*time.Second)),
+	)
+
+	// Title
+	fmt.Println(titleStyle.Render("📟 Machine Information"))
+
+	for _, item := range items {
+		fmt.Printf("• %s\n", item)
+	}
+
+	fmt.Println()
 }
