@@ -29,9 +29,10 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
 
 	e.POST("cache/set", handler.Set)
+	e.GET("cache/get/:key", handler.Get)
+	e.DELETE("cache/delete/:key", handler.Delete)
 
 	if err := e.Start(":8080"); err != nil {
 		slog.Error("failed to start server", slog.Any("error", err))

@@ -26,3 +26,5 @@ go.work.sum
 
 
 .vscode
+
+lpack_*

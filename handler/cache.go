@@ -37,3 +37,25 @@ func (ch *CacheHandler) Set(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "Cache set successfully"})
 }
+
+func (ch *CacheHandler) Get(c echo.Context) error {
+	key := c.Param("key")
+
+	value, err := ch.lcache.Get(c.Request().Context(), key)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get cache"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"value": value})
+}
+
+func (ch *CacheHandler) Delete(c echo.Context) error {
+	key := c.Param("key")
+
+	err := ch.lcache.Del(c.Request().Context(), key)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cache"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Cache deleted successfully"})
+}
