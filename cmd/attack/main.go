@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/lucasvillarinho/litepack-burn/attacker"
 )
@@ -9,7 +9,8 @@ import (
 func main() {
 	cacheAtk := attacker.NewCacheAttacker()
 
-	if err := cacheAtk.AttackCacheSet(); err != nil {
-		log.Fatalf("Error running benchmark: %v", err)
+	if err := cacheAtk.Attack(); err != nil {
+		fmt.Print(err)
+		return
 	}
 }

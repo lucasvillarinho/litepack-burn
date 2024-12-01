@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -27,11 +28,13 @@ func (ch *CacheHandler) Set(c echo.Context) error {
 	}
 
 	if err := c.Bind(&payload); err != nil {
+		slog.Error("failed to bind request payload", slog.Any("error", err))
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 	}
 
 	err := ch.lcache.Set(c.Request().Context(), payload.Key, payload.Value, time.Duration(payload.TTL)*time.Second)
 	if err != nil {
+		slog.Error("failed to set cache", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set cache"})
 	}
 
@@ -43,6 +46,7 @@ func (ch *CacheHandler) Get(c echo.Context) error {
 
 	value, err := ch.lcache.Get(c.Request().Context(), key)
 	if err != nil {
+		slog.Error("failed to get cache", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get cache"})
 	}
 
@@ -54,6 +58,7 @@ func (ch *CacheHandler) Delete(c echo.Context) error {
 
 	err := ch.lcache.Del(c.Request().Context(), key)
 	if err != nil {
+		slog.Error("failed to delete cache", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cache"})
 	}
 

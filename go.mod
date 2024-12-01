@@ -4,6 +4,7 @@ go 1.23.2
 
 require (
 	github.com/charmbracelet/x/ansi v0.4.2
+	github.com/go-faker/faker/v4 v4.5.0
 	github.com/lucasvillarinho/litepack v0.0.0-20241125215838-7e70ff5a70ca
 	github.com/tsenart/vegeta v12.7.0+incompatible
 )
@@ -44,7 +45,7 @@ require (
 	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
 	modernc.org/libc v1.55.3 // indirect
