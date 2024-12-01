@@ -29,7 +29,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
+	//e.Use(middleware.Logger())
 
 	e.POST("cache/set", handler.Set)
 	e.GET("cache/get/:key", handler.Get)
